@@ -8,6 +8,8 @@ from ..sql.utils import password_verify
 router = APIRouter(
     tags=["basic"],
 )
+
+
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -15,6 +17,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 @router.post("/register", response_model=schemas.User)
 async def create_user(user: schemas.UserIn, db: Session = Depends(get_db)):
