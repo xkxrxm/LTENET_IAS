@@ -1,5 +1,3 @@
-from csv import reader
-
 from sqlalchemy.orm import Session
 from sqlalchemy import update, delete, insert
 
@@ -66,15 +64,10 @@ def get_table_by_name(name: str):
 
 
 # 批量导入数据
-def create_table(db: Session, csv_reader: reader, table_name: str):
-    value_dict = []
-    header = next(csv_reader)  # 获取csv文件的列名作为表头
+def create_table(db: Session, values_dict: list, table_name: str):
     try:
-        for row in csv_reader:
-            # 将每一行转换为一个字典
-            value_dict .append({header[i]: row[i] for i in range(len(row))})
         table = get_table_by_name(table_name)
-        stmt = insert(table).values(value_dict)
+        stmt = insert(table).values(values_dict)
         db.execute(stmt)
     except Exception as e:
         db.rollback()
