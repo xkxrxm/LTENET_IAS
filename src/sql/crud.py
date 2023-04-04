@@ -64,7 +64,19 @@ def get_table_by_name(name: str):
 
 
 # 批量导入数据
-def create_table(db: Session, values_dict: list, table_name: str):
+def create_table_by_file(db: Session, values_dict_list: list, table_name: str):
+    try:
+        table = get_table_by_name(table_name)
+        stmt = insert(table).values(values_dict_list)
+        db.execute(stmt)
+    except Exception as e:
+        db.rollback()
+        raise e
+    else:
+        db.commit()  # 提交到数据库
+
+
+def create_table_by_line(db: Session, values_dict: dict, table_name: str):
     try:
         table = get_table_by_name(table_name)
         stmt = insert(table).values(values_dict)

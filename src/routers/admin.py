@@ -1,19 +1,18 @@
 import csv
-from openpyxl import load_workbook
 
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from openpyxl.reader.excel import load_workbook
 from sqlalchemy.orm import Session
 import os
 
 from ..sql import schemas, crud
 from .basic import get_db
+from ..sql.utils import convert_excel_to_csv
 
 router = APIRouter(
     prefix="/admin",
     tags=["admin"],
 )
-
-UPLOAD_DIR = "./uploads"  # 文件上传目录
 
 
 @router.get("/user_list", response_model=list[schemas.User])
@@ -44,28 +43,43 @@ async def delete_user(userid: str, db: Session = Depends(get_db)):
 # 批量导入数据的接口
 @router.post("/database/upload/{table_name}")
 async def create_upload_file(table_name: str, db: Session = Depends(get_db), file: UploadFile = File(...)):
-    values_dict = []
-    if file.filename.endswith(".csv"):
+    failed_lines = []
+    if file.filename.endswith(".xlsx"):
+        # 暂存文件
+        with open(file.filename, 'wb') as f:
+            f.write(await file.read())
+        f.close()
+        # 将文件转换问csv文件
+        temp_csv = table_name + ".csv"
+        convert_excel_to_csv(file.filename, temp_csv)
+        # 逐行插入
+        with open(temp_csv, 'r', encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                row_dict = {k: v for k, v in row.items() if v}
+                try:
+                    crud.create_table_by_line(db, row_dict, table_name)
+                except Exception as e:
+                    failed_lines.append(e)
+        f.close()
+        # 删除临时文件
+        os.remove(temp_csv)
+        os.remove(file.filename)
+
+    elif file.filename.endswith(".csv"):
         data = await file.read()  # 获取上传的csv文件数据
         data_str = data.decode("utf-8")  # 将csv文件数据处理为字符串类型，方便后面的处理
+
         csv_reader = csv.reader(data_str.splitlines(), delimiter=',')  # csv reader
         header = next(csv_reader)
         for row in csv_reader:
-            # 将每一行转换为一个字典
-            values_dict .append({header[i]: row[i] for i in range(len(row))})
-    elif file.filename.endswith(".xlsx"):
-        with open(file.filename, 'wb') as f:
-            f.write(await file.read())
-        workbook = load_workbook(file.filename)
-        sheet = workbook.active
-        headers = [cell.value for cell in sheet[1]]
-        for row in sheet.iter_rows(min_row=2, values_only=True):
-            row_dict = {headers[i]: row[i] for i in range(len(headers))}
-            values_dict.append(row_dict)
-    try:
-        crud.create_table(db, values_dict, table_name)
-    except Exception as e:
-        raise HTTPException(410, detail="failed")
-    finally:
-        os.remove(file.filename)
-    return {"filename": file.filename}
+            row_dict = {header[i]: row[i] for i in range(len(row)) if row[i]}
+            try:
+                crud.create_table_by_line(db, row_dict, table_name)
+            except Exception as e:
+                failed_lines.append(e)
+
+    if failed_lines:
+        return HTTPException(410,detail=failed_lines)
+    else:
+        return {"filename": file.filename}

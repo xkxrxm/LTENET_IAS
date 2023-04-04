@@ -1,9 +1,18 @@
 from passlib.context import CryptContext
+import pandas as pd
+from openpyxl import load_workbook
+
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from . import schemas
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def convert_excel_to_csv(input_path, output_path):
+    df = pd.read_excel(input_path)
+    # 将数据写入 CSV 文件
+    df.to_csv(output_path, index=False)
 
 
 def get_password_hash(password):
