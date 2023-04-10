@@ -1,9 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import update, delete, insert
 
-from . import models, schemas
-from .database import Base
-from .utils import get_password_hash
+from app.models import models
+from app.schemas import schemas
+from app.utils.database import Base
+from app.utils.hash import get_password_hash
 
 
 def get_user_by_username(db: Session, username: str) -> schemas.UserInDB:
@@ -22,11 +23,12 @@ def create_user(db: Session, user: schemas.UserIn):
     db.refresh(db_user)
     return db_user
 
+
 # 初始化root用户
 def ceate_root(db: Session):
     hashed_password = get_password_hash("123456")
     root = models.User(
-        username = "root",
+        username="root",
         hashed_password=hashed_password,
         is_active=True,
         is_admin=True)

@@ -1,0 +1,6 @@
+debug.py
+delete.py
+sql_app.db
+src\routers\__pycache__
+src\sql\__pycache__
+src\__pycache__

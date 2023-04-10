@@ -1,10 +1,5 @@
 from passlib.context import CryptContext
 import pandas as pd
-from openpyxl import load_workbook
-
-from fastapi import Depends
-from sqlalchemy.orm import Session
-from . import schemas
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

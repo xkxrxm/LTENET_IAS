@@ -1,8 +1,6 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, CheckConstraint, text
-from sqlalchemy.orm import relationship
-from typing import Optional
+from sqlalchemy import Boolean, Column, String
 
-from .database import Base
+from app.utils.database import Base
 
 
 class User(Base):
