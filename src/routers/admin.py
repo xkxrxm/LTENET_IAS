@@ -8,10 +8,13 @@ import os
 from ..sql import schemas, crud
 from .basic import get_db
 from ..sql.utils import convert_excel_to_csv
+from .token import validate_token_admin
 
 router = APIRouter(
     prefix="/admin",
     tags=["admin"],
+    # 这表示当请求到达路由之前，该依赖项必须被处理，即该依赖项的结果会在请求处理函数中作为参数被注入。
+    dependencies=[Depends(validate_token_admin)]
 )
 
 

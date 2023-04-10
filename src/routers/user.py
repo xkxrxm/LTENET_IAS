@@ -2,10 +2,12 @@ from io import BytesIO
 
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from starlette.responses import StreamingResponse
+from .token import validate_token
 
 router = APIRouter(
     prefix="/user",
     tags=["user"],
+    dependencies=[Depends(validate_token)]
 )
 
 

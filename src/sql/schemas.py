@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -24,3 +24,11 @@ class UserInDB(User):
 
     class Config:
         orm_mode = True
+
+class Token(BaseModel):
+    access_token:Optional[str] = None
+    token_type:Optional[str] = None
+    
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    expires_in: int = 0

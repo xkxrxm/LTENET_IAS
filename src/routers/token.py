@@ -1,0 +1,84 @@
+from fastapi import Depends, HTTPException, APIRouter
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jwt import decode, encode
+from jwt.exceptions import PyJWTError
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+
+from ..sql.crud import get_user_by_username
+from ..sql.database import get_db
+from ..sql.utils import password_verify
+from ..sql.schemas import Token, TokenData, UserInDB
+from ..main import logging
+
+
+router = APIRouter(
+    tags=["token"],
+)
+
+# 定义token相关配置
+SECRET_KEY = "SECRET KEY"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30    # 表示access token的过期时间为30分钟。
+
+# OAuth2密码授权流程，获取access token
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+
+# 创建access token
+def create_access_token(data: dict, expires_delta: timedelta):
+    to_encode = data.copy()
+    expire = datetime.now() + expires_delta
+    to_encode.update({"exp": expire})
+    encoded_jwt = encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+# 验证access token
+async def validate_token(token: str = Depends(oauth2_scheme),db: Session = Depends(get_db))-> bool:
+    try:
+        payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # 检查用户名是否有效
+        username = payload.get("sub")
+        exp = payload.get("exp")
+        if username is None or exp is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication token")
+        # 检测token时间戳
+        logging.info(exp)
+        if exp is not None :
+            # fromtimestamp 是 Python datetime 模块中的一个类方法，
+            # 它用于将 Unix 时间戳（从 1970 年 1 月 1 日零点开始计算的秒数）转换为日期时间对象。
+            exp_datetime = datetime.fromtimestamp(exp)
+            logging.info(exp_datetime)
+            if exp_datetime < datetime.now():
+                raise HTTPException(status_code=401, detail="Token has expired")
+        token_data = TokenData(username=username)
+    except PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+    user = get_user_by_username(db=db, username=token_data.username)
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user.is_admin
+
+# 对于管理员用户，需要检查管理员权限
+async def validate_token_admin(token: str = Depends(oauth2_scheme),db: Session = Depends(get_db)):
+    isadmin = validate_token(token=token,db=db)
+    if not isadmin:
+        raise HTTPException(status_code=401, detail="Permission denied")
+
+# 获取access token
+@router.post("/login", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    # OAuth2PasswordRequestForm是FastAPI中用于处理OAuth2 Password流程验证请求的专用请求体类。
+    # 这个类的作用是从请求体中解析出用户名和密码，并将它们传递给后面的业务逻辑。
+    db = next(get_db())
+    user = get_user_by_username(db, form_data.username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not password_verify(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect password")
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=access_token_expires
+    )
+    logging.info("获取token成功")
+    return {"access_token": access_token, "token_type": "bearer"}

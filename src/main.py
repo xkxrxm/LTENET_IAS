@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .sql import models, crud, schemas
 from .sql.database import engine, SessionLocal
-from .routers import basic, admin, user
+from .routers import basic, admin, user, token
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -17,6 +17,7 @@ app = FastAPI()
 app.include_router(basic.router)
 app.include_router(admin.router)
 app.include_router(user.router)
+app.include_router(token.router)
 
 # 挂载静态文件
 app.mount("/static", StaticFiles(directory="static"), name="static")
