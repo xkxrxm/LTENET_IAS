@@ -22,6 +22,18 @@ def create_user(db: Session, user: schemas.UserIn):
     db.refresh(db_user)
     return db_user
 
+# 初始化root用户
+def ceate_root(db: Session):
+    hashed_password = get_password_hash("123456")
+    root = models.User(
+        username = "root",
+        hashed_password=hashed_password,
+        is_active=True,
+        is_admin=True)
+    db.add(root)
+    db.commit()
+    db.refresh(root)
+
 
 def active_user(db: Session, userid: str):
     db.begin()
