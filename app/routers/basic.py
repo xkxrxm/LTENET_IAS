@@ -32,7 +32,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     # OAuth2PasswordRequestForm是FastAPI中用于处理OAuth2 Password流程验证请求的专用请求体类。
     # 这个类的作用是从请求体中解析出用户名和密码，并将它们传递给后面的业务逻辑。
     db = next(get_db())
-    user = get_user_by_username(db, form_data.username)
+    user = await get_user_by_username(db, form_data.username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not password_verify(form_data.password, user.hashed_password):

@@ -7,15 +7,15 @@ from app.utils.database import Base
 from app.utils.hash import get_password_hash
 
 
-def get_user_by_username(db: Session, username: str) -> schemas.UserInDB:
+async def get_user_by_username(db: Session, username: str) -> schemas.UserInDB:
     return db.query(models.User).filter(models.User.username == username).first()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100):
+async def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def create_user(db: Session, user: schemas.UserIn):
+async def create_user(db: Session, user: schemas.UserIn):
     hashed_password = get_password_hash(user.password)
     db_user = models.User(username=user.username, hashed_password=hashed_password)
     db.add(db_user)
@@ -25,7 +25,7 @@ def create_user(db: Session, user: schemas.UserIn):
 
 
 # 初始化root用户
-def ceate_root(db: Session):
+async def create_root(db: Session):
     hashed_password = get_password_hash("123456")
     root = models.User(
         username="root",
@@ -37,7 +37,7 @@ def ceate_root(db: Session):
     db.refresh(root)
 
 
-def active_user(db: Session, userid: str):
+async def active_user(db: Session, userid: str):
     db.begin()
     if not db.query(models.User).filter(models.User.username == userid).first():
         raise
@@ -53,7 +53,7 @@ def active_user(db: Session, userid: str):
         db.commit()
 
 
-def delete_user(db: Session, userid: str):
+async def delete_user(db: Session, userid: str):
     if not db.query(models.User).filter(models.User.username == userid).first():
         raise
     try:
@@ -78,7 +78,7 @@ def get_table_by_name(name: str):
 
 
 # 批量导入数据
-def create_table_by_file(db: Session, values_dict_list: list, table_name: str):
+async def create_table_by_file(db: Session, values_dict_list: list, table_name: str):
     try:
         table = get_table_by_name(table_name)
         stmt = insert(table).values(values_dict_list)
@@ -90,7 +90,7 @@ def create_table_by_file(db: Session, values_dict_list: list, table_name: str):
         db.commit()  # 提交到数据库
 
 
-def create_table_by_line(db: Session, values_dict: dict, table_name: str):
+async def create_table_by_line(db: Session, values_dict: dict, table_name: str):
     try:
         table = get_table_by_name(table_name)
         stmt = insert(table).values(values_dict)

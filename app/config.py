@@ -1,0 +1,2 @@
+TEMPDIR = ".temp"
+ADMIN_ROUTER_PREFIX= "/admin"

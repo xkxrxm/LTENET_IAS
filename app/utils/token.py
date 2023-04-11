@@ -49,7 +49,7 @@ async def validate_token(token: str = Depends(oauth2_scheme), db: Session = Depe
         token_data = TokenData(username=username)
     except PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication token")
-    user = get_user_by_username(db=db, username=token_data.username)
+    user = await get_user_by_username(db=db, username=token_data.username)
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     return user.is_admin
@@ -57,6 +57,6 @@ async def validate_token(token: str = Depends(oauth2_scheme), db: Session = Depe
 
 # 对于管理员用户，需要检查管理员权限
 async def validate_token_admin(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    is_admin = validate_token(token=token, db=db)
+    is_admin = await validate_token(token=token, db=db)
     if not is_admin:
         raise HTTPException(status_code=401, detail="Permission denied")
