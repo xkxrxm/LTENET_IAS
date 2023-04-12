@@ -49,7 +49,7 @@ async def validate_token(token: str = Depends(oauth2_scheme), db: Session = Depe
         token_data = TokenData(username=username)
     except PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication token")
-    user = await get_user_by_username(db=db, username=token_data.username)
+    user = get_user_by_username(db=db, username=token_data.username)
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
     return user.is_admin

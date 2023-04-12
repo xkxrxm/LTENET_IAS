@@ -26,7 +26,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.on_event("startup")
 async def root_init():
     db = SessionLocal()
-    if not await crud.get_user_by_username(db, username="root"):
-        await crud.create_root(db=db)
+    if not crud.get_user_by_username(db, username="root"):
+        crud.create_root(db=db)
         logging.info("创建root用户成功")
     db.close()

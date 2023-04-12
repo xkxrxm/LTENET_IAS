@@ -2,3 +2,4 @@ debug.py
 delete.py
 sql_app.db
 *.pyc
+app/utils/token.py
