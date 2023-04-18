@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, FLOAT
 
-from app.utils.database import Base
+from utils.database import Base
 
 
 class tbCell(Base):

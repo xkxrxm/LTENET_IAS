@@ -5,10 +5,10 @@ from jwt.exceptions import PyJWTError
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
-from app.crud.crud import get_user_by_username
-from app.utils.database import get_db
-from app.schemas.schemas import TokenData
-from app.main import logging
+from crud.crud import get_user_by_username
+from utils.database import get_db
+from schemas.schemas import TokenData
+import logging
 
 # 定义token相关配置
 SECRET_KEY = "SECRET KEY"

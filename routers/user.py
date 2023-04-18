@@ -2,7 +2,7 @@ from io import BytesIO
 
 from fastapi import APIRouter, Depends
 from starlette.responses import StreamingResponse
-from app.utils.token import validate_token
+from utils.token import validate_token
 
 router = APIRouter(
     prefix="/user",

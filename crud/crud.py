@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import update, delete, insert
 
-from app.models import models
-from app.schemas import schemas
-from app.utils.database import Base
-from app.utils.hash import get_password_hash
+from models import models
+from schemas import schemas
+from utils.database import Base
+from utils.hash import get_password_hash
 
 
 def get_user_by_username(db: Session, username: str) -> schemas.UserInDB:

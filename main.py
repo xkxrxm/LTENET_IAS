@@ -1,11 +1,13 @@
 import logging
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 
-from .crud import crud
-from .models import models,tb
-from app.utils.database import engine, SessionLocal
-from .routers import basic, admin, user
+import uvicorn
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
+
+from crud import crud
+from models import models, tb
+from utils.database import engine, SessionLocal
+from routers import user, admin, basic
 
 models.Base.metadata.create_all(bind=engine)
 tb.Base.metadata.create_all(bind=engine)
@@ -20,7 +22,7 @@ app.include_router(admin.router)
 app.include_router(user.router)
 
 # 挂载静态文件
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.on_event("startup")
@@ -30,3 +32,11 @@ async def root_init():
         crud.create_root(db=db)
         logging.info("创建root用户成功")
     db.close()
+
+@app.get('/')
+def toweb():
+    return RedirectResponse('/docs')
+
+# 项目程序的入口
+if __name__ == '__main__':
+    uvicorn.run(app=app)

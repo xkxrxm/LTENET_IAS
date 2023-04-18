@@ -1,8 +1,7 @@
 from itertools import islice
 from typing import Iterator
 
-import app.models.tb
-import app.schemas.tb
+import models
 
 upload_dict = dict()
 
@@ -13,13 +12,13 @@ def batch(it: Iterator, size):
 
 def str2schemas(table_name: str, **kwargs):
     try:
-        return app.schemas.tb.__dict__[table_name](**kwargs)
+        return schemas.tb.__dict__[table_name](**kwargs)
     except Exception:
         raise
 
 
 def str2models(table_name: str, **kwargs):
     try:
-        return app.models.tb.__dict__[table_name](**kwargs)
+        return models.tb.__dict__[table_name](**kwargs)
     except Exception:
         raise

@@ -2,8 +2,8 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from app.utils.data import str2models
-from app.utils.database import Base
+from utils.data import str2models
+from utils.database import Base
 
 
 def get_table_by_name(name: str):

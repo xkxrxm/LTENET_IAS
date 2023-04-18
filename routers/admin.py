@@ -1,20 +1,18 @@
 import csv
 import logging
 import os
-import time
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks
 from sqlalchemy.orm import Session
 
-from app.utils.database import get_db
-from app.utils.token import validate_token_admin
-from ..crud import crud
-from ..crud.data_update import create_table_by_batch
-from ..schemas import schemas
-from ..schemas.schemas import UploadTask
-from ..utils.data import upload_dict, batch, str2schemas
-from ..utils.hash import convert_excel_to_csv
+from utils.database import get_db
+from utils.token import validate_token_admin
+from crud.data_update import create_table_by_batch
+from schemas import schemas
+from schemas.schemas import UploadTask
+from utils.data import upload_dict, batch, str2schemas
+from utils.hash import convert_excel_to_csv
 
 router = APIRouter(
     prefix="/admin",
