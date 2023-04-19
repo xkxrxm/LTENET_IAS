@@ -9,7 +9,7 @@ class tbCell(Base):
     CITY = Column(String)
     SECTOR_ID = Column(String, primary_key=True, unique=True, index=True)
     SECTOR_NAME = Column(String, nullable=False)
-    ENODEBID = Column(Integer)
+    ENODEBID = Column(Integer, index=True)
     ENODEB_NAME = Column(String, nullable=False)
     EARFCN = Column(Integer, nullable=False)
     PCI = Column(Integer)
