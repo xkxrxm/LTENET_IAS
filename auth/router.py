@@ -6,19 +6,18 @@ from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 
 from utils.token import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
-from crud import crud
-from schemas import schemas
-from utils.database import get_db
-from schemas.schemas import Token
-from crud.crud import get_user_by_username
+from auth import schemas, crud
+from app.database import get_db
+from auth.schemas import Token
+from auth.crud import get_user_by_username
 from utils.hash import password_verify
 
 router = APIRouter(
-    tags=["basic"],
+    tags=["系统界面"],
 )
 
 
-@router.post("/register", response_model=schemas.User)
+@router.post("/register", response_model=schemas.UserOut)
 async def create_user(user: schemas.UserIn, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:

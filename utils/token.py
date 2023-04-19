@@ -1,22 +1,15 @@
+import logging
+from datetime import datetime, timedelta
+
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
 from jwt import decode, encode
 from jwt.exceptions import PyJWTError
-from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
-from crud.crud import get_user_by_username
-from utils.database import get_db
-from schemas.schemas import TokenData
-import logging
-
-# 定义token相关配置
-SECRET_KEY = "SECRET KEY"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 表示access token的过期时间为30分钟。
-
-# OAuth2密码授权流程，获取access token
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+from app.config import *
+from app.database import get_db
+from auth.crud import get_user_by_username
+from auth.schemas import TokenData
 
 
 # 创建access token

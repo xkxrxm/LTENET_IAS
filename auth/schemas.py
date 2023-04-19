@@ -3,15 +3,18 @@ from typing import Optional
 from pydantic import BaseModel
 
 
+# User基类
 class UserBase(BaseModel):
     username: str
 
 
+# User请求数据模型
 class UserIn(UserBase):
     password: str
 
 
-class User(UserBase):
+# User响应数据模型
+class UserOut(UserBase):
     is_active: bool
     is_admin: bool
 
@@ -19,7 +22,8 @@ class User(UserBase):
         orm_mode = True
 
 
-class UserInDB(User):
+# User业务数据模型
+class UserDB(UserOut):
     hashed_password: str
 
     class Config:
@@ -36,9 +40,3 @@ class TokenData(BaseModel):
     expires_in: int = 0
 
 
-class UploadTask(BaseModel):
-    task_id: str
-    processed: int = 0
-    failed: int = 0
-    failed_msg: list = []
-    done: bool = False

@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, validator
 
 
-class tbCell(BaseModel):
+class tbCellBase(BaseModel):
     CITY: str
     SECTOR_ID: str
     SECTOR_NAME: str
@@ -24,6 +24,9 @@ class tbCell(BaseModel):
     ELECTTILT: Optional[float]
     MECHTILT: Optional[float]
     TOTLETILT: Optional[float]
+
+    class Config:
+        orm_mode = True
 
     @validator("PCI", pre=True)
     def PCI_validator(cls, value):
@@ -60,6 +63,9 @@ class tbKPI(BaseModel):
     RCCConnATT: int
     RCCConnRATE: Optional[float]
 
+    class Config:
+        orm_mode = True
+
     @validator("SECTOR_DESCRIPTION", pre=True)
     def SECTOR_DESCRIPTION_validator(cls, value):
         if value is None:
@@ -74,14 +80,6 @@ class tbKPI(BaseModel):
     def RCCConnATT_validator(cls, value):
         return int(value)
 
-    @validator("RCCConnRATE",pre=True)
-    def RCCConnRATE_validator(cls, value):
-        if cls.RCCConnATT != 0:
-            value = cls.RCCConnSUCC / cls.RCCConnATT
-        else:
-            value = None
-        return value
-
 
 class tbMROData(BaseModel):
     TimeStamp: str
@@ -91,6 +89,9 @@ class tbMROData(BaseModel):
     LteNcRSRP: float
     LteNcEarfcn: int
     LteNcPci: int
+
+    class Config:
+        orm_mode = True
 
     @validator("LteScRSRP", pre=True)
     def LteScRSRP_validator(cls, value):
@@ -216,7 +217,17 @@ class tbPRB(BaseModel):
     AvgNoise99: float
     __DATETIME_PATTERN = "%m/%d/%Y %H:%M:%S"
 
+    class Config:
+        orm_mode = True
+
     @validator("StartTime", pre=True)
     def parse_datetime(cls, value):
         return datetime.datetime.strptime(value, cls.__DATETIME_PATTERN)
 
+
+class UploadTask(BaseModel):
+    task_id: str
+    processed: int = 0
+    failed: int = 0
+    failed_msg: list = []
+    done: bool = False
