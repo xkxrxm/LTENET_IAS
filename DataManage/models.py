@@ -30,13 +30,14 @@ class tbCell(Base):
 class tbKPI(Base):
     __tablename__ = "tbKPI"
 
-    StartTime = Column(String)
+    StartTime = Column(String, primary_key=True)
     ENODEB_NAME = Column(String)
     SECTOR_DESCRIPTION = Column(String)
     SECTOR_NAME = Column(String, primary_key=True)
     RCCConnSUCC = Column(Integer)
     RCCConnATT = Column(Integer)
     RCCConnRATE = Column(FLOAT)
+
 
 
 class tbMROData(Base):

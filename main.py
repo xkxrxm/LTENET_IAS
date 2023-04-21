@@ -16,7 +16,7 @@ app.include_router(data_router)
 app.include_router(user_router)
 app.include_router(query_router)
 
-generate_tables()
+# generate_tables()
 
 
 @app.on_event("startup")

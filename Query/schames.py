@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -71,3 +72,44 @@ class Cell_params:
         self.SECTOR_NAME = SECTOR_NAME
         self.page = page
         self.size = size
+
+
+class KpiTime(str, Enum):
+    d17 = "07/17/2020 00:00:00"
+    d18 = "07/18/2020 00:00:00"
+    d19 = "07/19/2020 00:00:00"
+
+
+class KpiProperty(str,Enum):
+    RCCConnSUCC = "RCCConnSUCC",
+    RCCConnRATE = "RCCConnRATE",
+    RCCConnATT = "RCCConnATT"
+
+
+class Kpi_params:
+    def __init__(self,
+        StartTime:KpiTime,
+        EndTime:KpiTime,
+        SECTOR_NAME:str,
+        Property:KpiProperty):
+        self.StartTime = StartTime
+        self.EndTime = EndTime
+        self.SECTOR_NAME = SECTOR_NAME
+        self.Property = Property
+
+
+class KPIOut(BaseModel):
+    StartTime: str
+    SECTOR_NAME: str
+    RCCConnSUCC: int
+    RCCConnATT: int
+    RCCConnRATE: Optional[float]
+
+    class Config:
+        orm_mode = True
+
+
+class KPIResponse(BaseModel):
+    count: int
+    list: List[KPIOut]
+
