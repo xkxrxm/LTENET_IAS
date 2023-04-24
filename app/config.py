@@ -7,3 +7,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 表示access token的过期时间为30分钟
 
 # OAuth2密码授权流程，获取access token
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+
+DB_HOST = 'localhost'
+DB_USERNAME = 'root'
+DB_PASSWORD = '123456'
+DB_DATABASE = 'datas'

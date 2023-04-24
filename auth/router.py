@@ -2,15 +2,16 @@ import logging
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 
-from utils.token import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
-from auth import schemas, crud
 from app.database import get_db
-from auth.schemas import Token
+from auth import schemas, crud
 from auth.crud import get_user_by_username
+from auth.models import User
+from auth.schemas import Token, UserOut
 from utils.hash import password_verify
+from utils.token import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, token_info
 
 router = APIRouter(
     tags=["系统界面"],
@@ -43,3 +44,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     logging.info("获取token成功")
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/user/info", response_model=UserOut)
+async def get_info(db: Session = Depends(get_db), username=Depends(token_info)):
+    me = db.query(User).filter(User.username == username).first()
+    return me

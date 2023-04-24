@@ -21,6 +21,12 @@ def create_access_token(data: dict, expires_delta: timedelta):
     return encoded_jwt
 
 
+async def token_info(token: str = Depends(oauth2_scheme)):
+    payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    username = payload.get("sub")
+    return username
+
+
 # 验证access token
 async def validate_token(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> bool:
     try:
