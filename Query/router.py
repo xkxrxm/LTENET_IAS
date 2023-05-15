@@ -11,14 +11,14 @@ router = APIRouter(
 
 
 #   基站 eNodeB 信息查询
-@router.get('/query/eNodeB', response_model=ListResponse)
+@router.get('/query/eNodeB', response_model=ListCellOut)
 async def get_eNodeBs(params: eNodeB_params = Depends(), db: Session = Depends(get_db)):
     return list_eNodeB(db, params)
 
 
 #   基站 eNodeB 信息查询
-@router.get('/query/Cell', response_model=ListResponse)
-async def get_eNodeBs(params: Cell_params = Depends(), db: Session = Depends(get_db)):
+@router.get('/query/Cell', response_model=ListCellOut)
+async def get_Cells(params: Cell_params = Depends(), db: Session = Depends(get_db)):
     return list_Cell(db, params)
 
 

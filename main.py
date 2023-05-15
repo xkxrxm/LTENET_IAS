@@ -34,4 +34,4 @@ async def toweb():
 
 # 项目程序的入口
 if __name__ == '__main__':
-    uvicorn.run(app=app)
+    uvicorn.run(app=app, port=8080)
