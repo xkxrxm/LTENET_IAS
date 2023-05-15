@@ -128,7 +128,10 @@ class PRBOut(BaseModel):
 
 class ListResponse(BaseModel):
     count: int
-    list: List[Union[PRBOut, str, eNodeBOut, KPIOut, CellOut]]
+    list: List[Union[PRBOut, str, eNodeBOut, KPIOut]]
 
 
+class ListCellOut(BaseModel):
+    count: int
+    list: List[CellOut]
 
