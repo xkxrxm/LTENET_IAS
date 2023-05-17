@@ -7,6 +7,7 @@ from auth.router import router as auth_router
 from UserManage.router import router as user_router
 from DataManage.router import router as data_router
 from Query.router import router as query_router
+from interStruAnalysis.router import router as inter_router
 from app.database import generate_tables, SessionLocal
 from tbC2I3.router import router as c2irouter
 
@@ -17,6 +18,8 @@ app.include_router(data_router)
 app.include_router(user_router)
 app.include_router(query_router)
 app.include_router(c2irouter)
+app.include_router(inter_router)
+
 
 # generate_tables()
 
