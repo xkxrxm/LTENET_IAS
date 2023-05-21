@@ -46,3 +46,8 @@ async def get_cell_name(db: Session = Depends(get_db)):
     return ENodeB_name_list(db)
 
 
+@router.get('/query/PRB_ENodeB_name', response_model=ListResponse)
+async def get_cell_name(db: Session = Depends(get_db)):
+    return PRB_ENodeB_name_list(db)
+
+

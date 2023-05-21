@@ -58,13 +58,29 @@ def ENodeB_name_list(db: Session):
 
 
 def query_PRB(db: Session, params: PRB_params):
-    sql = f"SELECT StartTime,ENODEB_NAME,AVG(AvgNoise{params.PRB}) FROM " \
-          f"{'tbprb' if params.Mode == PRB_mode.perQuarter else 'tbprbnew'} WHERE " \
-          f"StartTime >= :StartTime AND StartTime <= :EndTime AND ENODEB_NAME = :ENODEB_NAME" \
-          f" GROUP BY ENODEB_NAME,StartTime"
+    sql = f"SELECT " \
+          f"    StartTime,ENODEB_NAME,AVG(AvgNoise{params.PRB}) " \
+          f"FROM " \
+          f"    {'tbprb' if params.Mode == PRB_mode.perQuarter else 'tbprbnew'} " \
+          f"WHERE " \
+          f"    StartTime >= :StartTime " \
+          f"    AND StartTime <= :EndTime " \
+          f"    AND ENODEB_NAME = :ENODEB_NAME " \
+          f"GROUP BY " \
+          f"    ENODEB_NAME,StartTime"
     stmt = text(sql)
     stmt = stmt.bindparams(StartTime=str(params.StartTime), EndTime=str(params.EndTime),
                            ENODEB_NAME=str(params.ENODEB_NAME))
     result = db.execute(stmt)
     data = [PRBOut(**dict(zip(["Time", "data"], [str(i[0]), i[2]]))) for i in result]
+    return {'count': len(data), 'list': data}
+
+def PRB_ENodeB_name_list(db: Session):
+    stmt = text(""
+                "SELECT DISTINCT "
+                "   ENODEB_NAME "
+                "FROM "
+                "   tbprbnew")
+    result = db.execute(stmt)
+    data = [x[0] for x in result]
     return {'count': len(data), 'list': data}
