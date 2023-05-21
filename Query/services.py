@@ -58,13 +58,13 @@ def ENodeB_name_list(db: Session):
 
 
 def query_PRB(db: Session, params: PRB_params):
-    stmt = text("SELECT * FROM tbprbnew WHERE StartTime >= :StartTime AND StartTime <= :EndTime AND SECTOR_NAME = "
-                ":SECTOR_NAME")
-    if params.Mode == PRB_mode.perQuarter:
-        stmt = text("SELECT * FROM tbprb WHERE StartTime >= :StartTime AND StartTime <= :EndTime AND SECTOR_NAME = "
-                    ":SECTOR_NAME")
-    stmt = stmt.bindparams(StartTime=str(params.StartTime), EndTime=str(params.EndTime), SECTOR_NAME=params.SECTOR_NAME)
+    sql = f"SELECT StartTime,ENODEB_NAME,AVG(AvgNoise{params.PRB}) FROM " \
+          f"{'tbprb' if params.Mode == PRB_mode.perQuarter else 'tbprbnew'} WHERE " \
+          f"StartTime >= :StartTime AND StartTime <= :EndTime AND ENODEB_NAME = :ENODEB_NAME" \
+          f" GROUP BY ENODEB_NAME,StartTime"
+    stmt = text(sql)
+    stmt = stmt.bindparams(StartTime=str(params.StartTime), EndTime=str(params.EndTime),
+                           ENODEB_NAME=str(params.ENODEB_NAME))
     result = db.execute(stmt)
-    data = [PRBOut(**dict(zip(["Time", "data"],
-                              [str(i._mapping["StartTime"]), i._mapping["AvgNoise"+str(params.PRB)]]))) for i in result]
+    data = [PRBOut(**dict(zip(["Time", "data"], [str(i[0]), i[2]]))) for i in result]
     return {'count': len(data), 'list': data}

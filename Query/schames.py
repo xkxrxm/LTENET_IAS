@@ -104,7 +104,7 @@ class PRB_mode(str, Enum):
 # PRB 请求参数约束
 class PRB_params:
     def __init__(self,
-                 SECTOR_NAME: str,
+                 ENODEB_NAME: str,
                  Mode: PRB_mode,
                  PRB: int,
                  StartTime: datetime.datetime = "2020-07-17 00:00:00",
@@ -114,16 +114,15 @@ class PRB_params:
                  ):
         self.StartTime = StartTime
         self.EndTime = EndTime
-        self.SECTOR_NAME = SECTOR_NAME
+        self.ENODEB_NAME = ENODEB_NAME
         self.Mode = Mode
         self.PRB = PRB
-        # self.size = size
-        # self.page = page
+
 
 
 class PRBOut(BaseModel):
     Time: str
-    data: int
+    data: float
 
 
 class ListResponse(BaseModel):
