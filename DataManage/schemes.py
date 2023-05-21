@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, validator
@@ -225,9 +226,17 @@ class tbPRB(BaseModel):
         return datetime.datetime.strptime(value, cls.__DATETIME_PATTERN)
 
 
-class UploadTask(BaseModel):
-    task_id: str
-    processed: int = 0
-    failed: int = 0
-    failed_msg: list = []
-    done: bool = False
+class TableName(str,Enum):
+    tbCell = "tbcell"
+    tbKPI = "tbkpi"
+    tbPRB = "tbprb"
+    tbMROData = "tbmrodata"
+
+class TableOut(str,Enum):
+    tbCell = "tbcell"
+    tbKPI = "tbkpi"
+    tbC2i = "tbc2inew"
+
+
+
+

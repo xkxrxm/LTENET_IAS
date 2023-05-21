@@ -1,13 +1,11 @@
 import uuid
 from io import BytesIO
 
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, File, UploadFile, BackgroundTasks
 from starlette.responses import StreamingResponse
 
-from app.database import get_db
 from utils.token import validate_token_admin, validate_token
-from .schemes import UploadTask
+from .schemes import TableName, TableOut
 from .services import *
 
 router = APIRouter(
@@ -18,57 +16,42 @@ router = APIRouter(
 # 批量导入数据的接口
 @router.post("/database/upload/{table_name}")
 async def upload_file(
-        table_name: str,
+        table_name: TableName,
         background_tasks: BackgroundTasks,
-        db: Session = Depends(get_db),
         file: UploadFile = File(...),
         _=Depends(validate_token_admin)):
     task_id = uuid.uuid4().hex
     temp_csv = task_id + ".csv"
-    if file.filename.endswith(".xlsx"):
-        # 暂存文件
-        with open(file.filename, 'wb') as f:
-            f.write(await file.read())
-        f.close()
-        # 将文件转换问csv文件
-        convert_excel_to_csv(file.filename, temp_csv)
-        # 删除临时文件
-        os.remove(file.filename)
 
-    elif file.filename.endswith(".csv"):
-        # 暂存文件
-        with open(temp_csv, 'wb') as f:
-            f.write(await file.read())
-        f.close()
-    # 创建一个UploadTask记录当前任务的状态
-    upload_dict[task_id] = UploadTask(task_id=task_id)
-    try:
-        # 注意： 加入到background_tasks中的任务一定不要是 async
-        background_tasks.add_task(upload_data_background, csvfile=temp_csv, task_id=task_id, table_name=table_name,
-                                  db=db)
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=401, detail="上传失败")
-    return RedirectResponse(url="admin/upload/status?task_id="+task_id)
+    with open(temp_csv, 'wb') as f:
+        f.write(await file.read())
+    f.close()
+    background_tasks.add_task(upload_data_background, csv_path=temp_csv, task_id=task_id, table_name=table_name,
+                              chunk_size=50)
 
-
-@router.get("/upload/status")
-def upload_status(task_id: str):
-    logging.info(upload_dict)
-    if task_id in upload_dict:
-        return upload_dict[task_id]
-    raise HTTPException(status_code=404, detail="Item not found")
+    return {"detail": "上传成功"}
 
 
 @router.get("/download/{filename}")
 async def download_file(
-        filename: str,
+        filename: TableOut,
         _=Depends(validate_token)):
-    # 读取文件内容
-    with open(filename, "rb") as f:
-        contents = f.read()
+    sql = f"SELECT * FROM {filename.value}"
+    df = pd.read_sql(sql, engine)
+    task_id = uuid.uuid4().hex
+    temp_csv = task_id + ".csv"
+    try:
+        df.to_csv(temp_csv)
 
-    # 构造响应对象，设置文件内容和Content-Disposition Header
-    response = StreamingResponse(BytesIO(contents))
-    response.headers["Content-Disposition"] = "attachment; filename={}".format(filename)
+        # 读取文件内容
+        with open(temp_csv, "rb") as f:
+            contents = f.read()
+
+        # 构造响应对象，设置文件内容和Content-Disposition Header
+        response = StreamingResponse(BytesIO(contents))
+        response.headers["Content-Disposition"] = "attachment; filename={}".format(filename.value + ".csv")
+    except Exception:
+        raise
+    finally:
+        os.remove(temp_csv)
     return response
