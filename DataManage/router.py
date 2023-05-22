@@ -4,6 +4,7 @@ from io import BytesIO
 from fastapi import APIRouter, Depends, File, UploadFile, BackgroundTasks
 from starlette.responses import StreamingResponse
 
+from app.database import get_db
 from utils.token import validate_token_admin, validate_token
 from .schemes import TableIn, TableOut
 from .services import *
@@ -21,6 +22,7 @@ async def upload_file(
         background_tasks: BackgroundTasks,
         file: UploadFile = File(...),
         _=Depends(validate_token_admin),
+        db: Session = Depends(get_db),
         chunk_size: int = 50,
 ):
 
@@ -28,7 +30,7 @@ async def upload_file(
         f.write(await file.read())
     f.close()
     background_tasks.add_task(upload_data_background, file_path=file.filename, table_name=table_name,
-                              chunk_size=chunk_size)
+                              chunk_size=chunk_size, db=db)
 
     return {"detail": "上传成功"}
 

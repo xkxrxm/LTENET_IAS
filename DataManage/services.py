@@ -3,13 +3,15 @@ import os
 
 import openpyxl
 import pandas as pd
+from sqlalchemy import text
 from sqlalchemy.exc import DataError, IntegrityError, OperationalError
+from sqlalchemy.orm import Session
 
 from app.database import engine
 from .schemes import TableIn
 
 
-def upload_data_background(file_path: str, table_name: TableIn, chunk_size: int):
+def upload_data_background(file_path: str, table_name: TableIn, chunk_size: int, db: Session):
     try:
         if file_path.endswith("xlsx"):
             file_path = convert_to_csv(file_path)
@@ -18,17 +20,16 @@ def upload_data_background(file_path: str, table_name: TableIn, chunk_size: int)
             try:
                 chunk = data_filter(table_name, chunk)
                 chunk.to_sql(table_name.value, con=engine, if_exists='append', chunksize=chunk_size, index=False)
-            except Exception as e:
-                print(e)
-                for _, row in chunk.iterrows():
-                    try:
-                        row.to_frame().T.to_sql(table_name.value, con=engine, if_exists='append', index=False)
-                    except DataError as e:
-                        print(e.params)
-                    except IntegrityError as e:
-                        print(e.params)
-                    except OperationalError as e:
-                        print(e.params)
+            except OperationalError or IntegrityError as e:
+                # print(e)
+                chunk.to_sql(table_name.value + "_temp", con=engine, if_exists='replace', chunksize=chunk_size,
+                             index=False)
+                db.commit()
+
+                db.begin()
+                db.execute(text(get_sql_1(table_name)))
+                db.execute(text(get_sql_2(table_name)))
+                db.commit()
     except Exception as e:
         print(e)
         raise
@@ -51,7 +52,7 @@ def data_filter(table_name: TableIn, chunk):
 
     # elif table_name == table_name.tbPRB:  # 没有什么好检查的
 
-    else:  # table_name == table_name.tbMROData
+    elif table_name == table_name.tbMROData:
         condition = (chunk['LteNcPci'] >= 0) & (chunk['LteNcPci'] <= 503)
         filtered = chunk[~condition]
         print(filtered)  # 在导入日志文件（txt 文件）中记录改行数据编号
@@ -72,3 +73,30 @@ def convert_to_csv(path: str):
     os.remove(path)
     return output_file
 
+
+def get_sql_1(table_name: TableIn):
+    key = "SECTOR_NAME"
+    if table_name == TableIn.tbCell:
+        key = "SECTOR_ID"
+    elif table_name == TableIn.tbMROData:
+        key = "TimeStamp"
+    elif table_name == TableIn.tbTest:
+        key = "id"
+    sql1 = f'''
+    DELETE 
+    FROM
+    	{table_name.value}  
+    WHERE
+    	 {key} IN ( SELECT {key} FROM {table_name.value + "_temp"} )
+    '''
+    return sql1
+
+
+def get_sql_2(table_name: TableIn):
+    sql2 = f'''
+    INSERT INTO {table_name.value}  SELECT
+    * 
+    FROM
+    	{table_name.value + "_temp"} 
+    '''
+    return sql2
