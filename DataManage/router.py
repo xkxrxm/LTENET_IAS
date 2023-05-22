@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, File, UploadFile, BackgroundTasks
 from starlette.responses import StreamingResponse
 
 from utils.token import validate_token_admin, validate_token
-from .schemes import TableName, TableOut
+from .schemes import TableIn, TableOut
 from .services import *
 
 router = APIRouter(
@@ -13,21 +13,22 @@ router = APIRouter(
 )
 
 
+# todo: excel文件 插入或更新
 # 批量导入数据的接口
 @router.post("/database/upload/{table_name}")
 async def upload_file(
-        table_name: TableName,
+        table_name: TableIn,
         background_tasks: BackgroundTasks,
         file: UploadFile = File(...),
-        _=Depends(validate_token_admin)):
-    task_id = uuid.uuid4().hex
-    temp_csv = task_id + ".csv"
+        _=Depends(validate_token_admin),
+        chunk_size: int = 50,
+):
 
-    with open(temp_csv, 'wb') as f:
+    with open(file.filename, 'wb') as f:    # 暂存文件
         f.write(await file.read())
     f.close()
-    background_tasks.add_task(upload_data_background, csv_path=temp_csv, task_id=task_id, table_name=table_name,
-                              chunk_size=50)
+    background_tasks.add_task(upload_data_background, file_path=file.filename, table_name=table_name,
+                              chunk_size=chunk_size)
 
     return {"detail": "上传成功"}
 

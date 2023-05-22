@@ -226,17 +226,15 @@ class tbPRB(BaseModel):
         return datetime.datetime.strptime(value, cls.__DATETIME_PATTERN)
 
 
-class TableName(str,Enum):
+class TableIn(str, Enum):
     tbCell = "tbcell"
     tbKPI = "tbkpi"
     tbPRB = "tbprb"
     tbMROData = "tbmrodata"
 
-class TableOut(str,Enum):
+
+class TableOut(str, Enum):
     tbCell = "tbcell"
     tbKPI = "tbkpi"
     tbC2i = "tbc2inew"
-
-
-
 
