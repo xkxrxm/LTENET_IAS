@@ -16,12 +16,12 @@ def upload_data_background(file_path: str, table_name: TableIn, chunk_size: int,
         if file_path.endswith("xlsx"):
             file_path = convert_to_csv(file_path)
         reader = pd.read_csv(file_path, chunksize=chunk_size, encoding="utf-8")
+
         for chunk in reader:
             try:
                 chunk = data_filter(table_name, chunk)
                 chunk.to_sql(table_name.value, con=engine, if_exists='append', chunksize=chunk_size, index=False)
-            except OperationalError or IntegrityError as e:
-                # print(e)
+            except IntegrityError or OperationalError as e:
                 chunk.to_sql(table_name.value + "_temp", con=engine, if_exists='replace', chunksize=chunk_size,
                              index=False)
                 db.commit()
@@ -40,13 +40,17 @@ def upload_data_background(file_path: str, table_name: TableIn, chunk_size: int,
 # 数据清洗
 def data_filter(table_name: TableIn, chunk):
     if table_name == TableIn.tbCell:
-        chunk = chunk.drop(['SSS', 'PSS'], axis=1)
+        # chunk = chunk.drop(['SSS', 'PSS'], axis=1)
+        chunk['SSS'] = 0
+        chunk['PSS'] = 0
+
         condition = (chunk['LONGITUDE'] >= -180.0) & (chunk['LONGITUDE'] <= 180.0)  # 经度
 
         condition = condition & (chunk['LATITUDE'] >= -90) & (chunk['LATITUDE'] <= 90)  # 纬度
         condition = condition & (chunk['PCI'] >= 0) & (chunk['PCI'] <= 503)  # 物理小区标识介于0到503之间
         filtered = chunk[~condition]
-        print(filtered)  # todo 在导入日志文件（txt 文件）中记录改行数据编号
+        if not filtered.empty:
+            print(filtered)  # todo 在导入日志文件（txt 文件）中记录改行数据编号
         chunk = chunk[condition]
     # elif table_name == table_name.tbKPI:  # 没有什么好检查的
 
@@ -55,7 +59,8 @@ def data_filter(table_name: TableIn, chunk):
     elif table_name == table_name.tbMROData:
         condition = (chunk['LteNcPci'] >= 0) & (chunk['LteNcPci'] <= 503)
         filtered = chunk[~condition]
-        print(filtered)  # 在导入日志文件（txt 文件）中记录改行数据编号
+        if not filtered.empty:
+            print(filtered)  # 在导入日志文件（txt 文件）中记录改行数据编号
         chunk = chunk[condition]
 
     return chunk
@@ -83,20 +88,13 @@ def get_sql_1(table_name: TableIn):
     elif table_name == TableIn.tbTest:
         key = "id"
     sql1 = f'''
-    DELETE 
-    FROM
-    	{table_name.value}  
-    WHERE
-    	 {key} IN ( SELECT {key} FROM {table_name.value + "_temp"} )
+    DELETE FROM	{table_name.value}  WHERE {key} IN ( SELECT {key} FROM {table_name.value + "_temp"} )
     '''
     return sql1
 
 
 def get_sql_2(table_name: TableIn):
     sql2 = f'''
-    INSERT INTO {table_name.value}  SELECT
-    * 
-    FROM
-    	{table_name.value + "_temp"} 
+    INSERT INTO {table_name.value} SELECT * FROM {table_name.value + "_temp"} 
     '''
     return sql2
