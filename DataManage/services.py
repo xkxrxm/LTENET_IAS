@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from app.database import engine
 from .schemes import TableIn
 
+log_file = "Logs/upload_log.txt"
+
 
 def upload_data_background(file_path: str, table_name: TableIn, chunk_size: int, db: Session):
     try:
@@ -45,12 +47,9 @@ def data_filter(table_name: TableIn, chunk):
         chunk['PSS'] = 0
 
         condition = (chunk['LONGITUDE'] >= -180.0) & (chunk['LONGITUDE'] <= 180.0)  # 经度
-
         condition = condition & (chunk['LATITUDE'] >= -90) & (chunk['LATITUDE'] <= 90)  # 纬度
         condition = condition & (chunk['PCI'] >= 0) & (chunk['PCI'] <= 503)  # 物理小区标识介于0到503之间
         filtered = chunk[~condition]
-        if not filtered.empty:
-            print(filtered)  # todo 在导入日志文件（txt 文件）中记录改行数据编号
         chunk = chunk[condition]
     # elif table_name == table_name.tbKPI:  # 没有什么好检查的
 
@@ -59,10 +58,12 @@ def data_filter(table_name: TableIn, chunk):
     elif table_name == table_name.tbMROData:
         condition = (chunk['LteNcPci'] >= 0) & (chunk['LteNcPci'] <= 503)
         filtered = chunk[~condition]
-        if not filtered.empty:
-            print(filtered)  # 在导入日志文件（txt 文件）中记录改行数据编号
         chunk = chunk[condition]
 
+    if not filtered.empty:
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write("failed: "+str(filtered.info))
+        f.close()
     return chunk
 
 
