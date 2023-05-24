@@ -50,4 +50,6 @@ async def get_cell_name(db: Session = Depends(get_db)):
 async def get_cell_name(db: Session = Depends(get_db)):
     return PRB_ENodeB_name_list(db)
 
-
+@router.get('/query/KPI_tbCell_name', response_model=ListResponse)
+async def get_cell_name(db: Session = Depends(get_db)):
+    return KPI_tbCell_name_list(db)

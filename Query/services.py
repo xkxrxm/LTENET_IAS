@@ -75,12 +75,24 @@ def query_PRB(db: Session, params: PRB_params):
     data = [PRBOut(**dict(zip(["Time", "data"], [str(i[0]), i[2]]))) for i in result]
     return {'count': len(data), 'list': data}
 
+
 def PRB_ENodeB_name_list(db: Session):
     stmt = text(""
                 "SELECT DISTINCT "
                 "   ENODEB_NAME "
                 "FROM "
                 "   tbprbnew")
+    result = db.execute(stmt)
+    data = [x[0] for x in result]
+    return {'count': len(data), 'list': data}
+
+
+def KPI_tbCell_name_list(db: Session):
+    stmt = text(""
+                "SELECT DISTINCT "
+                "   SECTOR_NAME "
+                "FROM "
+                "   tbkpi")
     result = db.execute(stmt)
     data = [x[0] for x in result]
     return {'count': len(data), 'list': data}
