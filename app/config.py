@@ -12,3 +12,4 @@ DB_HOST = 'localhost'
 DB_USERNAME = 'root'
 DB_PASSWORD = '123456'
 DB_DATABASE = 'datas'
+

@@ -44,17 +44,16 @@ async def download_file(
     task_id = uuid.uuid4().hex
     temp_csv = task_id + ".csv"
     try:
-        df.to_csv(temp_csv)
-
+        df.to_csv(temp_csv, index=False)
         # 读取文件内容
         with open(temp_csv, "rb") as f:
             contents = f.read()
-
         # 构造响应对象，设置文件内容和Content-Disposition Header
         response = StreamingResponse(BytesIO(contents))
         response.headers["Content-Disposition"] = "attachment; filename={}".format(filename.value + ".csv")
     except Exception:
         raise
     finally:
+        f.close()
         os.remove(temp_csv)
     return response

@@ -37,6 +37,8 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         raise HTTPException(status_code=404, detail="User not found")
     if not password_verify(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect password")
+    if not user.is_active:
+        raise HTTPException(status_code=402, detail="用户未激活，请联系管理员")
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username},
