@@ -13,3 +13,6 @@ DB_USERNAME = 'root'
 DB_PASSWORD = '123456'
 DB_DATABASE = 'datas'
 
+DB_partition = r"D:\datas"
+DB_time = 30
+DB_buffer_size = 1000

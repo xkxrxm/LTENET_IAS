@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.config import DB_USERNAME, DB_PASSWORD, DB_HOST, DB_DATABASE
 
 # @param echo :是否打开sql语句执行的info信息
-engine = create_engine(f"mysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_DATABASE}", echo=True)
+engine = create_engine(f"mysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_DATABASE}", echo=False)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

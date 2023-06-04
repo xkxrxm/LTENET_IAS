@@ -8,7 +8,7 @@ from UserManage.router import router as user_router
 from DataManage.router import router as data_router
 from Query.router import router as query_router
 from interStruAnalysis.router import router as inter_router
-from app.database import generate_tables, SessionLocal
+from app.database import SessionLocal
 from tbC2I3.router import router as c2irouter
 
 app = FastAPI()

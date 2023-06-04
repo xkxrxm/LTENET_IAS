@@ -109,8 +109,6 @@ class PRB_params:
                  PRB: int,
                  StartTime: datetime.datetime = "2020-07-17 00:00:00",
                  EndTime: datetime.datetime = "2020-07-19 00:00:00",
-                 # page: int = 1,
-                 # size: int = 10
                  ):
         self.StartTime = StartTime
         self.EndTime = EndTime
