@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 
 from fastapi import APIRouter, Depends
@@ -15,7 +16,7 @@ router = APIRouter(
 
 
 def get_pos():
-    csv_data = pd.read_csv(r"D:/BaiduSyncdisk/PythonWorkplace/LTENET_IAS/interStruAnalysis/tbcell.csv", encoding='utf-8', usecols=['SECTOR_ID', 'LONGITUDE', 'LATITUDE'])
+    csv_data = pd.read_csv("tbcell.csv", encoding='utf-8', usecols=['SECTOR_ID', 'LONGITUDE', 'LATITUDE'])
     coordinate_dict = {}
     for index, row in csv_data.iterrows():
         coordinate_dict[str(row['SECTOR_ID'])] = [row['LONGITUDE'], row['LATITUDE']]
@@ -24,8 +25,7 @@ def get_pos():
 
 @router.get('/graph')
 async def get_graph():
-    filepath = 'D:/BaiduSyncdisk/PythonWorkplace/LTENET_IAS/interStruAnalysis/tbC2I.txt'  # 获取社区划分
-    # pyl = PyLouvain.from_file(filepath)
+    filepath = 'tbC2I.txt'  # 获取社区划分
     f = open(filepath, 'r')
     lines = f.readlines()
     f.close()
