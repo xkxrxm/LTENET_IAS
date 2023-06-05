@@ -4,6 +4,7 @@ from io import BytesIO
 from fastapi import APIRouter, Depends
 from starlette.responses import StreamingResponse
 
+from utils.token import validate_token
 from .pylouvain import PyLouvain, in_order
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -12,10 +13,10 @@ import networkx as nx
 router = APIRouter(
     tags=["网络干扰结构分析"]
 )
-
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 def get_pos():
-    csv_data = pd.read_csv("tbcell.csv", encoding='utf-8', usecols=['SECTOR_ID', 'LONGITUDE', 'LATITUDE'])
+    csv_data = pd.read_csv(os.path.join(script_dir, 'tbcell.csv'), encoding='utf-8', usecols=['SECTOR_ID', 'LONGITUDE', 'LATITUDE'])
     coordinate_dict = {}
     for index, row in csv_data.iterrows():
         coordinate_dict[str(row['SECTOR_ID'])] = [row['LONGITUDE'], row['LATITUDE']]
@@ -23,12 +24,15 @@ def get_pos():
 
 
 @router.get('/graph')
-async def get_graph(threshold: int = 0):
+async def get_graph(threshold: int = 0,
+                    _=Depends(validate_token)
+                    ):
     if threshold < 50:
-        with open(f'D:/BaiduSyncdisk/PythonWorkplace/LTENET_IAS/interStruAnalysis/graph/{threshold}.jpg', 'rb') as f:
+        graph_path = os.path.join(script_dir, 'graph', f'{threshold}.jpg')
+        with open(graph_path, "rb") as f:
             content = f.read()
         return StreamingResponse(BytesIO(content), media_type="image/jpeg")
-    filepath = 'tbC2I.txt'  # 获取社区划分
+    filepath = os.path.join(script_dir, 'tbC2I.txt')
     f = open(filepath, 'r')
     lines = f.readlines()
     f.close()
@@ -109,7 +113,6 @@ async def get_graph(threshold: int = 0):
     nx.draw_networkx_nodes(G, pos_dict, nodelist=[node_list[i] for i in node_3_index_list], node_shape=6,
                            node_color=[color_list[i] for i in node_3_index_list], node_size=50)
     nx.draw_networkx_edges(G, pos_dict, edgelist=edge_list, width=edge_width, alpha=1, edge_color=edge_color)
-    plt.savefig(f'graph/{threshold}.jpg')
     buf = BytesIO()
     plt.savefig(buf, format="jpeg")
     buf.seek(0)
