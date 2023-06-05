@@ -4,7 +4,6 @@ from io import BytesIO
 from fastapi import APIRouter, Depends
 from starlette.responses import StreamingResponse
 
-from utils.token import validate_token
 from .pylouvain import PyLouvain, in_order
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -24,7 +23,11 @@ def get_pos():
 
 
 @router.get('/graph')
-async def get_graph():
+async def get_graph(threshold: int = 0):
+    if threshold < 50:
+        with open(f'D:/BaiduSyncdisk/PythonWorkplace/LTENET_IAS/interStruAnalysis/graph/{threshold}.jpg', 'rb') as f:
+            content = f.read()
+        return StreamingResponse(BytesIO(content), media_type="image/jpeg")
     filepath = 'tbC2I.txt'  # 获取社区划分
     f = open(filepath, 'r')
     lines = f.readlines()
@@ -43,29 +46,22 @@ async def get_graph():
         edges.append(((n[0], n[1]), w))
     # rebuild graph with successive identifiers
     nodes_, edges_ = in_order(nodes, edges)
-    # print("%d nodes, %d edges" % (len(nodes_), len(edges_)))
     pyl = PyLouvain(nodes_, edges_)
 
     node_dict = dict(zip(nodes.keys(), nodes_))  # key 是 253916-2 的形式，value 是编号的形式
     reverse_node_dict = dict(zip(node_dict.values(), node_dict.keys()))  # key 是编号的形式，value是 253916-2 的形式
     partition, q = pyl.apply_method()
-    # print(partition)
-    # print("模块度：", q)
 
     # 给各个社区节点分配颜色
     community_num = len(partition)
-    # print('community_num:', community_num)
     color_board = ['red', 'green', 'blue', 'pink', 'orange', 'purple', 'scarlet']
     color = {}
     for index in range(community_num):
-        # print("社区" + str(index + 1) + ":" + str(len(partition[index])))
         for node_id in partition[index]:
             color[node_id] = color_board[index]  # color 为一个字典，key 为编号形式的节点，value 为所属社区的颜色
     new_color_dict = sorted(color.items(), key=lambda d: d[0], reverse=False)  # 将 color 字典按照 key 的大小排序，并返回一个 list
     node_list = [reverse_node_dict[item[0]] for item in new_color_dict]  # 存储编号从小到大顺序对应的 253916-2 的形式的节点
     color_list = [item[1] for item in new_color_dict]  # 存储 node_list 中对应的节点颜色
-    # print(node_list)
-    # print(color_list)
 
     # 构建 networkx 无向图
     G = nx.Graph()
@@ -85,7 +81,7 @@ async def get_graph():
             edge_color.append(color[node_dict[n[0]]])  # 则使用点的颜色作为边的颜色
         else:
             edge_color.append('c')  # 否则使用其他颜色
-        if float(n[2]) > 0:  # 阈值
+        if float(n[2]) > threshold:  # 阈值
             edge_width.append(float(n[2]) / 100.0)
         else:
             edge_width.append(0.0)
@@ -104,7 +100,6 @@ async def get_graph():
             node_2_index_list.append(index)
         if item == 3:
             node_3_index_list.append(index)
-    # print("node_list:", _node)
     nx.draw_networkx_nodes(G, pos_dict, nodelist=[node_list[i] for i in node_0_index_list], node_shape=7,
                            node_color=[color_list[i] for i in node_0_index_list], node_size=50)
     nx.draw_networkx_nodes(G, pos_dict, nodelist=[node_list[i] for i in node_1_index_list], node_shape=4,
@@ -114,6 +109,7 @@ async def get_graph():
     nx.draw_networkx_nodes(G, pos_dict, nodelist=[node_list[i] for i in node_3_index_list], node_shape=6,
                            node_color=[color_list[i] for i in node_3_index_list], node_size=50)
     nx.draw_networkx_edges(G, pos_dict, edgelist=edge_list, width=edge_width, alpha=1, edge_color=edge_color)
+    plt.savefig(f'graph/{threshold}.jpg')
     buf = BytesIO()
     plt.savefig(buf, format="jpeg")
     buf.seek(0)

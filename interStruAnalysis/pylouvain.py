@@ -289,7 +289,6 @@ class PyLouvain:
     _edges: a list of ((int, int), weight) pairs
 '''
 def in_order(nodes, edges):
-        # rebuild graph with successive identifiers
         nodes = list(nodes.keys())
         nodes.sort()
         i = 0
