@@ -91,7 +91,7 @@ async def get_graph(threshold: int = 0,
             edge_width.append(0.0)
 
     # 可视化
-    plt.figure(figsize=(50, 50))
+    plt.figure(figsize=(24, 18))
     pos_dict = get_pos()
     _node = [int(item.split("-")[-1]) % 4 for item in node_list]  # 提取后缀模 4 取余
     node_0_index_list, node_1_index_list, node_2_index_list, node_3_index_list = [], [], [], []
